@@ -58,6 +58,8 @@ namespace detail
         mutable bool                                   error;
     };
 
+    cpp_source_span parse_entity_span(const CXCursor& cur);
+
     // parse default value of variable, function parameter...
     std::unique_ptr<cpp_expression> parse_default_value(cpp_attribute_list&  attributes,
                                                         const parse_context& context,

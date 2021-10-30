@@ -10,6 +10,8 @@
 #include "libclang_visitor.hpp"
 #include "parse_functions.hpp"
 
+#include <iostream>
+
 using namespace cppast;
 
 std::unique_ptr<cpp_entity> detail::parse_cpp_friend(const detail::parse_context& context,
@@ -55,6 +57,8 @@ std::unique_ptr<cpp_entity> detail::parse_cpp_friend(const detail::parse_context
                 // this might be a definition, so give friend information to the parser
                 entity  = parse_entity(context, nullptr, referenced, cur);
                 comment = type_safe::copy(entity->comment()).value_or("");
+                cpp_source_span span = parse_entity_span(cur);
+                entity->set_span(std::move(span));
             }
         }
         else if (kind == CXCursor_NamespaceRef)
@@ -79,6 +83,8 @@ std::unique_ptr<cpp_entity> detail::parse_cpp_friend(const detail::parse_context
                 // steal comment
                 comment = type_safe::copy(entity->comment()).value_or("");
                 entity->set_comment(type_safe::nullopt);
+                cpp_source_span span = parse_entity_span(cur);
+                entity->set_span(std::move(span));
             }
         }
         else if (inst_builder && clang_isExpression(kind))
@@ -104,5 +110,6 @@ std::unique_ptr<cpp_entity> detail::parse_cpp_friend(const detail::parse_context
     // ... but override if this finds a different comment
     // due to clang_getCursorReferenced(), this may happen
     context.comments.match(*result, cur);
+
     return result;
 }

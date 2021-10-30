@@ -6,6 +6,7 @@
 
 #include <cstring>
 #include <fstream>
+#include <iostream>
 #include <vector>
 
 #include <clang-c/CXCompilationDatabase.h>
@@ -667,7 +668,11 @@ try
 
             auto entity = detail::parse_entity(context, &builder.get(), cur);
             if (entity)
+            {
+				cpp_source_span span = detail::parse_entity_span(cur);
+				entity->set_span(std::move(span));
                 builder.add_child(std::move(entity));
+            }
         }
     });
 

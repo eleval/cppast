@@ -9,6 +9,8 @@
 
 #include "libclang_visitor.hpp"
 
+#include <iostream>
+
 using namespace cppast;
 
 namespace
@@ -75,7 +77,11 @@ std::unique_ptr<cpp_entity> detail::parse_cpp_namespace(const detail::parse_cont
     detail::visit_children(cur, [&](const CXCursor& cur) {
         auto entity = parse_entity(context, &builder.get(), cur);
         if (entity)
+        {
+			cpp_source_span span = detail::parse_entity_span(cur);
+			entity->set_span(std::move(span));
             builder.add_child(std::move(entity));
+        }
     });
     return builder.finish(*context.idx, get_entity_id(cur));
 }

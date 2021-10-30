@@ -38,6 +38,9 @@ type_safe::optional<typename TemplateT::builder> get_builder(const detail::parse
     auto entity = detail::parse_entity(context, nullptr, result, cur);
     if (!entity)
         return type_safe::nullopt;
+
+	cpp_source_span span = detail::parse_entity_span(cur);
+	entity->set_span(std::move(span));
     DEBUG_ASSERT(p(entity->kind()), detail::parse_error_handler{}, cur, "wrong child of template");
     return typename TemplateT::builder(
         std::unique_ptr<EntityT>(static_cast<EntityT*>(entity.release())));

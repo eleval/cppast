@@ -9,7 +9,52 @@
 
 #include "libclang_visitor.hpp"
 
+#include <iostream>
+
 using namespace cppast;
+
+cpp_source_span detail::parse_entity_span(const CXCursor& cur)
+{
+	CXSourceRange range = clang_getCursorExtent(cur);
+	CXSourceLocation start_location = clang_getRangeStart(range);
+	CXSourceLocation end_location = clang_getRangeEnd(range);
+
+	CXFile start_file;
+	uint32_t start_line;
+	uint32_t start_column;
+	uint32_t start_offset;
+	clang_getExpansionLocation(start_location, &start_file, &start_line, &start_column, &start_offset);
+
+	CXFile end_file;
+	uint32_t end_line;
+	uint32_t end_column;
+	uint32_t end_offset;
+	clang_getExpansionLocation(end_location, &end_file, &end_line, &end_column, &end_offset);
+
+	CXString start_file_cx_str = clang_getFileName(start_file);
+    CXString end_file_cx_str = clang_getFileName(end_file);
+
+	std::string start_file_str = clang_getCString(start_file_cx_str);
+	std::string end_file_str = clang_getCString(end_file_cx_str);
+
+    cpp_source_span span;
+
+    cpp_source_location start;
+    start.set_file(std::move(start_file_str));
+    start.set_line(start_line);
+    start.set_column(start_column);
+    start.set_offset(start_offset);
+    span.set_start(std::move(start));
+
+    cpp_source_location end;
+    end.set_file(std::move(end_file_str));
+    end.set_line(end_line);
+    end.set_column(end_column);
+    end.set_offset(end_offset);
+    span.set_end(std::move(end));
+
+    return span;
+}
 
 cpp_entity_id detail::get_entity_id(const CXCursor& cur)
 {

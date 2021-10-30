@@ -32,7 +32,11 @@ std::unique_ptr<cpp_entity> detail::try_parse_cpp_language_linkage(const parse_c
     detail::visit_children(cur, [&](const CXCursor& child) {
         auto entity = parse_entity(context, &builder.get(), child);
         if (entity)
+        {
+			cpp_source_span span = parse_entity_span(cur);
+			entity->set_span(std::move(span));
             builder.add_child(std::move(entity));
+        }
     });
 
     return builder.finish();

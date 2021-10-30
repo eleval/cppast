@@ -8,6 +8,8 @@
 #include "libclang_visitor.hpp"
 #include "parse_functions.hpp"
 
+#include <iostream>
+
 using namespace cppast;
 
 namespace
@@ -166,7 +168,11 @@ std::unique_ptr<cpp_entity> detail::parse_cpp_class(const detail::parse_context&
                 // other children due to templates and stuff
                 return;
             else if (auto entity = parse_entity(context, &builder.get(), child))
+            {
+                cpp_source_span span = parse_entity_span(cur);
+                entity->set_span(std::move(span));
                 builder.add_child(std::move(entity));
+            }
         });
     }
 

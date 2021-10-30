@@ -7,6 +7,7 @@
 
 #include <atomic>
 #include <string>
+#include <sstream>
 
 #include <type_safe/optional_ref.hpp>
 
@@ -22,6 +23,92 @@ class cpp_entity_index;
 struct cpp_entity_id;
 class cpp_template_parameter;
 class cpp_template;
+
+class cpp_source_location
+{
+public:
+    const std::string& file() const noexcept
+    {
+        return file_;
+    }
+
+    void set_file(std::string file) noexcept
+    {
+        file_ = std::move(file);
+    }
+
+    uint32_t line() const noexcept
+    {
+        return line_;
+    }
+
+    void set_line(uint32_t line) noexcept
+    {
+        line_ = line;
+    }
+
+    uint32_t column() const noexcept
+    {
+        return column_;
+    }
+
+    void set_column(uint32_t column) noexcept
+    {
+        column_ = column;
+    }
+
+    uint32_t offset() const noexcept
+    {
+        return offset_;
+    }
+
+    void set_offset(uint32_t offset) noexcept
+    {
+        offset_ = offset;
+    }
+
+private:
+    std::string file_;
+    uint32_t line_ = 0;
+    uint32_t column_ = 0;
+    uint32_t offset_ = 0;
+};
+
+class cpp_source_span
+{
+public:
+    const cpp_source_location& start() const noexcept
+    {
+        return start_;
+    }
+
+    void set_start(cpp_source_location start) noexcept
+    {
+        start_ = std::move(start);
+    }
+
+    const cpp_source_location& end() const noexcept
+    {
+        return end_;
+    }
+
+    void set_end(cpp_source_location end) noexcept
+    {
+        end_ = std::move(end);
+    }
+
+private:
+    cpp_source_location start_;
+    cpp_source_location end_;
+};
+
+inline std::string to_string(const cpp_source_span& span)
+{
+    std::stringstream ss;
+    ss << span.start().file() << "(" << span.start().line() << ", " << span.start().column() << ", " << span.start().offset() << ")" << std::endl;
+    ss << span.end().file() << "(" << span.end().line() << ", " << span.end().column() << ", " << span.end().offset() << ")" << std::endl;
+    return ss.str();
+}
 
 /// The name of a scope.
 ///
@@ -157,6 +244,16 @@ public:
     {
         user_data_ = data;
     }
+
+    const cpp_source_span& span() const noexcept
+    {
+        return span_;
+    }
+
+    void set_span(cpp_source_span span) noexcept
+    {
+        span_ = std::move(span);
+    }
     
     /// \effects Creates it giving it the the name.
     cpp_entity(std::string name) : name_(std::move(name)), user_data_(nullptr) {}
@@ -182,6 +279,7 @@ private:
     cpp_attribute_list                        attributes_;
     type_safe::optional_ref<const cpp_entity> parent_;
     mutable std::atomic<void*>                user_data_;
+    cpp_source_span                           span_;
 
     template <typename T>
     friend struct detail::intrusive_list_access;
