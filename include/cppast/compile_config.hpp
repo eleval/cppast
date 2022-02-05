@@ -114,6 +114,11 @@ public:
         return do_get_name();
     }
 
+    const std::vector<std::string>& get_flags() const noexcept
+    {
+        return flags_;
+    }
+
 protected:
     compile_config(std::vector<std::string> def_flags) : flags_(std::move(def_flags)) {}
 
@@ -125,11 +130,6 @@ protected:
     void add_flag(std::string flag)
     {
         flags_.push_back(std::move(flag));
-    }
-
-    const std::vector<std::string>& get_flags() const noexcept
-    {
-        return flags_;
     }
 
 private:
