@@ -37,7 +37,9 @@ type_safe::optional<typename TemplateT::builder> get_builder(const detail::parse
 
     auto entity = detail::parse_entity(context, nullptr, result, cur);
     if (!entity)
+    {
         return type_safe::nullopt;
+    }
 
 	cpp_source_span span = detail::parse_entity_span(cur);
 	entity->set_span(std::move(span));
