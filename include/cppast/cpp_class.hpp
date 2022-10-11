@@ -128,14 +128,19 @@ public:
     {
     public:
         /// \effects Sets the name and kind and whether it is `final`.
-        explicit builder(std::string name, cpp_class_kind kind, bool is_final = false)
-        : class_(new cpp_class(std::move(name), kind, is_final))
+        explicit builder(std::string name, cpp_class_kind kind, bool is_final = false, bool is_abstract = false)
+        : class_(new cpp_class(std::move(name), kind, is_final, is_abstract))
         {}
 
         /// \effects Marks the class as final.
         void is_final() noexcept
         {
             class_->final_ = true;
+        }
+
+        void is_abstract() noexcept
+        {
+            class_->abstract_ = true;
         }
 
         /// \effects Builds a [cppast::cpp_base_class]() and adds it.
@@ -207,6 +212,11 @@ public:
         return final_;
     }
 
+    bool is_abstract() const noexcept
+    {
+        return abstract_;
+    }
+
     /// \returns An iteratable object iterating over the [cppast::cpp_base_class]() specifiers.
     detail::iteratable_intrusive_list<cpp_base_class> bases() const noexcept
     {
@@ -214,8 +224,8 @@ public:
     }
 
 private:
-    cpp_class(std::string name, cpp_class_kind kind, bool final)
-    : cpp_entity(std::move(name)), kind_(kind), final_(final)
+    cpp_class(std::string name, cpp_class_kind kind, bool final, bool abstract)
+    : cpp_entity(std::move(name)), kind_(kind), final_(final), abstract_(abstract)
     {}
 
     cpp_entity_kind do_get_entity_kind() const noexcept override;
@@ -228,6 +238,7 @@ private:
     detail::intrusive_list<cpp_base_class> bases_;
     cpp_class_kind                         kind_;
     bool                                   final_;
+    bool                                   abstract_;
 };
 
 /// \returns The type the base class refers to.

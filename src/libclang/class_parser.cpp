@@ -121,6 +121,7 @@ std::unique_ptr<cpp_entity> detail::parse_cpp_class(const detail::parse_context&
     auto is_templated = (clang_getTemplateCursorKind(cur) != CXCursor_NoDeclFound
                          || !clang_Cursor_isNull(clang_getSpecializedCursorTemplate(cur)));
     auto is_friend    = clang_getCursorKind(parent_cur) == CXCursor_FriendDecl;
+    auto is_abstract  = clang_CXXRecord_isAbstract(cur);
 
     auto                                builder = make_class_builder(context, cur);
     type_safe::optional<cpp_entity_ref> semantic_parent;
@@ -174,6 +175,11 @@ std::unique_ptr<cpp_entity> detail::parse_cpp_class(const detail::parse_context&
                 builder.add_child(std::move(entity));
             }
         });
+    }
+
+    if (is_abstract)
+    {
+        builder.is_abstract();
     }
 
     if (!is_friend && clang_isCursorDefinition(cur))
