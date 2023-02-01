@@ -238,7 +238,8 @@ std::unique_ptr<cpp_entity> detail::parse_cpp_function_template(
     DEBUG_ASSERT(clang_getCursorKind(cur) == CXCursor_FunctionTemplate, detail::assert_handler{});
 
     std::unique_ptr<cpp_entity> func;
-    switch (clang_getTemplateCursorKind(cur))
+    CXCursorKind templateCurKind = clang_getTemplateCursorKind(cur);
+    switch (templateCurKind)
     {
     case CXCursor_FunctionDecl:
         func = detail::parse_cpp_function(context, cur, is_friend);
@@ -254,6 +255,9 @@ std::unique_ptr<cpp_entity> detail::parse_cpp_function_template(
         break;
     case CXCursor_Constructor:
         func = detail::parse_cpp_constructor(context, cur, is_friend);
+        break;
+    case CXCursor_UnexposedDecl:
+        func = nullptr; // This is unsupported I guess, but I don't want it to throw an error
         break;
 
     default:
