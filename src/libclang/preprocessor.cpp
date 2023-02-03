@@ -22,6 +22,11 @@ using namespace cppast;
 namespace tpl = TinyProcessLib;
 namespace ts  = type_safe;
 
+#if defined(__GNUC__) || defined(__GNUG__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
 bool detail::pp_doc_comment::matches(const cpp_entity&, unsigned e_line)
 {
     if (kind == detail::pp_doc_comment::end_of_line)
@@ -1251,3 +1256,7 @@ detail::preprocessor_output detail::preprocess(const libclang_compile_config& co
 
     return result;
 }
+
+#if defined(__GNUC__) || defined(__GNUG__)
+#pragma GCC diagnostic pop
+#endif
