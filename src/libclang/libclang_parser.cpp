@@ -147,7 +147,7 @@ void detail::for_each_file(const libclang_compilation_database& database, void* 
 
 namespace
 {
-bool is_flag(const detail::cxstring& str)
+bool is_flag(const std::string& str)
 {
     return str.length() > 1u && str[0] == '-';
 }
@@ -165,43 +165,59 @@ void parse_flags(CXCompileCommand cmd, Func callback)
 {
     auto        no_args = clang_CompileCommand_getNumArgs(cmd);
     std::string last_flag;
+    auto parse_flag = [&last_flag, &callback](const std::string& str)
+    {
+		if (is_flag(str))
+		{
+			if (!last_flag.empty())
+			{
+				// process last flag
+				std::string args;
+				if (auto ptr = find_flag_arg_sep(last_flag))
+				{
+					auto pos = std::size_t(ptr - last_flag.c_str());
+					++ptr;
+					while (*ptr)
+						args += *ptr++;
+					last_flag.erase(pos);
+				}
+				else if (last_flag.size() > 2u)
+				{
+					/*if (last_flag.find("-isystem") != std::string::npos)
+					{
+						args = last_flag.substr(8u);
+						last_flag.erase(8u);
+					}
+					else*/
+					{
+						// assume two character flag
+						args = last_flag.substr(2u);
+						last_flag.erase(2u);
+					}
+				}
+
+				callback(std::move(last_flag), std::move(args));
+			}
+
+			last_flag = str;
+		}
+		else if (!last_flag.empty())
+		{
+			// we have flags + args
+			callback(std::move(last_flag), str);
+			last_flag.clear();
+		}
+		// else skip argument
+    };
+
     for (auto i = 1u /* 0 is compiler executable */; i != no_args; ++i)
     {
         detail::cxstring str(clang_CompileCommand_getArg(cmd, i));
-        if (is_flag(str))
-        {
-            if (!last_flag.empty())
-            {
-                // process last flag
-                std::string args;
-                if (auto ptr = find_flag_arg_sep(last_flag))
-                {
-                    auto pos = std::size_t(ptr - last_flag.c_str());
-                    ++ptr;
-                    while (*ptr)
-                        args += *ptr++;
-                    last_flag.erase(pos);
-                }
-                else if (last_flag.size() > 2u)
-                {
-                    // assume two character flag
-                    args = last_flag.substr(2u);
-                    last_flag.erase(2u);
-                }
-
-                callback(std::move(last_flag), std::move(args));
-            }
-
-            last_flag = str.std_str();
-        }
-        else if (!last_flag.empty())
-        {
-            // we have flags + args
-            callback(std::move(last_flag), str.std_str());
-            last_flag.clear();
-        }
-        // else skip argument
+        parse_flag(str.std_str());
     }
+
+    // Parse the remaining flag
+    parse_flag(last_flag);
 }
 } // namespace
 
